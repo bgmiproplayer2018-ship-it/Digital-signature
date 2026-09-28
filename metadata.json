@@ -1,0 +1,6 @@
+{
+  "name": "Cash Tree Co-Operative e-Sign Portal",
+  "description": "Secure digital signature portal for Cash Tree Co-operative Thrift & Credit Society Ltd members Amit Kumar and Sonu.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
