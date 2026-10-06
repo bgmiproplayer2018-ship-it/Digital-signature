@@ -6,6 +6,7 @@ import { MemberSelector } from './components/MemberSelector';
 import { SignaturePad } from './components/SignaturePad';
 import { SuccessView } from './components/SuccessView';
 import { SavedRecordsModal } from './components/SavedRecordsModal';
+import { LoanStatusCard } from './components/LoanStatusCard';
 import {
   ShieldCheck,
   FileSignature,
@@ -132,6 +133,14 @@ export default function App() {
               Member e-Sign
             </button>
             <span className="text-slate-300">·</span>
+            <a
+              href="#loan-status-section"
+              className="hover:text-emerald-700 text-slate-600 transition-colors flex items-center gap-1.5"
+            >
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              <span>Loan Status (A/C 2800)</span>
+            </a>
+            <span className="text-slate-300">·</span>
             <span className="text-slate-500 font-normal text-xs">
               Society Reg. No: CTCS/2026/DL
             </span>
@@ -200,6 +209,11 @@ export default function App() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Requested Feature: Gagan kumar rana Loan Status Card (A/C: 2800, Approved Amount: 50,000/-, 6-Step Loan Dots with 5 done & 1 pending) */}
+            <div id="loan-status-section" className="scroll-mt-24">
+              <LoanStatusCard />
             </div>
 
             {/* Feature 1: Select User Features (Amit Kumar & Sonu) */}
