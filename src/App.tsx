@@ -5,12 +5,11 @@ import { CashTreeLogo } from './components/CashTreeLogo';
 import { MemberSelector } from './components/MemberSelector';
 import { SignaturePad } from './components/SignaturePad';
 import { SuccessView } from './components/SuccessView';
-import { SavedRecordsModal } from './components/SavedRecordsModal';
 import { LoanStatusCard } from './components/LoanStatusCard';
+import { SignatureReceivedCard } from './components/SignatureReceivedCard';
 import {
   ShieldCheck,
   FileSignature,
-  History,
   Building2,
   Lock,
   PhoneCall,
@@ -25,7 +24,7 @@ export default function App() {
   const [savedRecords, setSavedRecords] = useState<SignatureRecord[]>([]);
   const [currentSubmission, setCurrentSubmission] = useState<SignatureRecord | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [isVaultOpen, setIsVaultOpen] = useState<boolean>(false);
+  const [reSignMemberId, setReSignMemberId] = useState<string | null>(null);
 
   // Load records from localStorage on initial load
   useEffect(() => {
@@ -94,7 +93,7 @@ export default function App() {
   // Return to home screen as required
   const handleReturnHome = () => {
     setCurrentSubmission(null);
-    setSelectedMember(null);
+    setReSignMemberId(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -102,6 +101,7 @@ export default function App() {
   const handleClearRecords = () => {
     if (window.confirm('Are you sure you want to clear all stored signatures from local audit?')) {
       saveRecordsToStorage([]);
+      setReSignMemberId(null);
     }
   };
 
@@ -146,22 +146,13 @@ export default function App() {
             </span>
           </nav>
 
-          {/* Zone 3: Actions & Audit Vault Button */}
-          <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={() => setIsVaultOpen(true)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all border border-slate-200 cursor-pointer"
-              title="View Securely Stored Signatures"
-            >
-              <History className="w-3.5 h-3.5 text-slate-600" />
-              <span className="hidden sm:inline">Stored Signatures</span>
-              {savedRecords.length > 0 && (
-                <span className="w-5 h-5 rounded-full bg-emerald-600 text-white font-mono text-[10px] flex items-center justify-center font-bold">
-                  {savedRecords.length}
-                </span>
-              )}
-            </button>
+          {/* Zone 3: Security & Verification Badge */}
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="hidden sm:inline">256-Bit Encrypted Portal</span>
+              <span className="sm:hidden">Encrypted</span>
+            </div>
           </div>
         </div>
       </header>
@@ -226,29 +217,54 @@ export default function App() {
               />
             </div>
 
-            {/* Feature 2: Below show a signature pad for drawing when customer selects user */}
+            {/* Feature 2: Below show signature received card with done logo if already signed, or drawing pad if pending */}
             <div id="signature-pad-section" className="scroll-mt-24">
               {selectedMember ? (
-                <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="flex items-center justify-between px-1">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                      Step 2: Sign Document
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedMember(null)}
-                      className="text-xs text-slate-500 hover:text-slate-800 underline transition-colors"
-                    >
-                      Change Member
-                    </button>
-                  </div>
+                (() => {
+                  const existingRecord = savedRecords.find(
+                    (rec) => rec.memberId === selectedMember.id || rec.accountNo === selectedMember.accountNo
+                  );
+                  const isReSigning = reSignMemberId === selectedMember.id;
+                  const hasSignatureReceived = Boolean(existingRecord) && !isReSigning;
 
-                  <SignaturePad
-                    member={selectedMember}
-                    onSubmit={handleSubmitSignature}
-                    isSubmitting={isSubmitting}
-                  />
-                </div>
+                  return (
+                    <div className="space-y-4 animate-in fade-in duration-300">
+                      {!hasSignatureReceived && (
+                        <div className="flex items-center justify-between px-1">
+                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            Step 2: Sign Document
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedMember(null);
+                              setReSignMemberId(null);
+                            }}
+                            className="text-xs text-slate-500 hover:text-slate-800 underline transition-colors"
+                          >
+                            Change Member
+                          </button>
+                        </div>
+                      )}
+
+                      {hasSignatureReceived ? (
+                        /* When signature is received: show Signature Received card with done logo, do NOT show sign form */
+                        <SignatureReceivedCard
+                          member={selectedMember}
+                          record={existingRecord}
+                          onSignAgain={() => setReSignMemberId(selectedMember.id)}
+                        />
+                      ) : (
+                        /* Show drawing sign form only when not yet signed (or if explicit re-sign requested) */
+                        <SignaturePad
+                          member={selectedMember}
+                          onSubmit={handleSubmitSignature}
+                          isSubmitting={isSubmitting}
+                        />
+                      )}
+                    </div>
+                  );
+                })()
               ) : (
                 /* Encouraging Callout before member is chosen */
                 <div className="p-8 rounded-2xl border-2 border-dashed border-slate-300 bg-white text-center">
@@ -256,10 +272,10 @@ export default function App() {
                     <FileSignature className="w-6 h-6" />
                   </div>
                   <h3 className="font-bold text-slate-800 text-lg">
-                    Select a Member Above to Sign
+                    Select a Member Above to Check or Submit Signature
                   </h3>
                   <p className="text-slate-500 text-sm max-w-md mx-auto mt-1">
-                    Click either <strong>AMIT KUMAR (A/C 2938)</strong> or <strong>SONU (A/C 2937)</strong> in the cards above to activate their signature drawing pad.
+                    Click either <strong>AMIT KUMAR (A/C 2938)</strong> or <strong>SONU (A/C 2937)</strong> in the cards above. Once signed, their mandate will show <strong>Signature Received</strong> with the verified done mark.
                   </p>
                 </div>
               )}
@@ -321,14 +337,6 @@ export default function App() {
           </p>
         </div>
       </footer>
-
-      {/* Saved Records Audit Modal */}
-      <SavedRecordsModal
-        isOpen={isVaultOpen}
-        onClose={() => setIsVaultOpen(false)}
-        records={savedRecords}
-        onClearRecords={handleClearRecords}
-      />
     </div>
   );
 }

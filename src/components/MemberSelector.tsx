@@ -64,14 +64,21 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({
                       .join('')}
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-slate-900 text-lg tracking-tight">
                         {member.name}
                       </span>
-                      {isSelected && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-md">
-                          Selected
+                      {previousSignatures > 0 ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-md">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Signature Received</span>
                         </span>
+                      ) : (
+                        isSelected && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-md">
+                            Selected
+                          </span>
+                        )
                       )}
                     </div>
                     <div className="flex items-center gap-1 text-slate-600 text-sm mt-0.5">
@@ -85,12 +92,14 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({
 
                 <div
                   className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 mt-1 ${
-                    isSelected
+                    previousSignatures > 0
+                      ? 'border-emerald-600 bg-emerald-600 text-white'
+                      : isSelected
                       ? 'border-emerald-600 bg-emerald-600 text-white'
                       : 'border-slate-300 bg-white'
                   }`}
                 >
-                  {isSelected && <CheckCircle2 className="w-4 h-4" />}
+                  {(previousSignatures > 0 || isSelected) && <CheckCircle2 className="w-4 h-4" />}
                 </div>
               </div>
 
@@ -126,8 +135,20 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({
               {/* Highlight bar for active */}
               {isSelected && (
                 <div className="mt-3.5 flex items-center justify-between text-xs font-medium text-emerald-800 bg-emerald-100/60 rounded-lg px-3 py-1.5">
-                  <span>Pad Ready for Drawing</span>
-                  <span className="text-emerald-700 font-semibold underline">Scroll below to sign ↓</span>
+                  {previousSignatures > 0 ? (
+                    <>
+                      <span className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>Signature Already Received &amp; Verified</span>
+                      </span>
+                      <span className="text-emerald-800 font-semibold">View Mandate ↓</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Pad Ready for Drawing</span>
+                      <span className="text-emerald-700 font-semibold underline">Scroll below to sign ↓</span>
+                    </>
+                  )}
                 </div>
               )}
             </button>
